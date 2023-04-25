@@ -37,6 +37,38 @@ class MicroPostController extends AbstractController
         ]);
     }
 
+    #[Route('/micro-post/top-liked', name: 'app_micro_post_topliked')] 
+    public function topLiked(MicroPostRepository $posts): Response
+    {
+     /*   $microPost = new MicroPost();
+        $microPost->setTitle('It comes from controller');
+        $microPost->setText('Hi!');
+        $microPost->setCreated(new DateTime());*/
+
+        //$microPost = $posts->find(7);
+       // $microPost->setTitle('Wlecome in general!');
+
+        //$posts->remove($microPost, true);
+       // dd($posts->findBy(['title' => 'Welcome to US!']));
+
+        return $this->render('micro_post/top_liked.html.twig', [
+            'posts' => $posts->findAllWithMinLikes(2),
+        ]);
+    }
+
+    #[Route('/micro-post/follows', name: 'app_micro_post_follows')] 
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function follows(MicroPostRepository $posts): Response
+    {   
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        return $this->render('micro_post/follows.html.twig', [
+            'posts' => $posts->findAllByAuthors(
+                $currentUser->getFollows()
+            ),
+        ]);
+    }
+
     #[Route('/micro-post/{post}', name: 'app_micro_post_show')] 
     #[IsGranted(MicroPost::VIEW, 'post')]
     public function showOne(MicroPost $post): Response
@@ -47,7 +79,7 @@ class MicroPostController extends AbstractController
         ]);
     } 
     #[Route('/micro-post/add', name: 'app_micro_post_add', priority: 2)]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[IsGranted('ROLE_WRITER')]
     public function add(Request $request, MicroPostRepository $posts): Response
     {   
      /*   $this->denyAccessUnlessGranted(
@@ -56,6 +88,7 @@ class MicroPostController extends AbstractController
         );*/
         
         //$microPost = new MicroPost();
+
         $form = $this->createForm(MicroPostType::class, new MicroPost());
       /*  $form = $this->createFormBuilder($microPost)
                 ->add('title')
